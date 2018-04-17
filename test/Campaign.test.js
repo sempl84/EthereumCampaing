@@ -32,7 +32,37 @@ campaign = await new web3.eth.Contract(
 
 describe('Campaigns', () => {
     it('deploys a factory and a campaign', () => {
-    assert.ok(factory.options.address);
-    assert.ok(campaign.options.address);
+        assert.ok(factory.options.address);
+        assert.ok(campaign.options.address);
     });
+
+    it('sure that is campaign manager', async () => {
+        const manager = await campaign.methods.manager().call();
+        assert.equal(manager, accounts[0]);
+    });
+
+    it('allows people to contribute money and check it', async () => {
+        await campaign.methods.contribute().send({
+            value: '200',
+            from: accounts[1]
+        });
+
+        const isContribute = await campaign.methods.approvers(accounts[1]).call();
+        assert(isContribute);
+
+    });
+
+    it('requires a minimum contribution', async () => {
+        try {
+            await campaign.methods.contribute().send({
+                from: accounts[1],
+                value: 5
+            });
+    } catch(err) {
+        assert(err);
+        return;
+    }
+    assert(false);
+    });
+
 });
